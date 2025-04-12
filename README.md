@@ -1,18 +1,23 @@
 # Site Blocker Chrome Extension
 
-A simple Chrome extension that allows you to block websites based on their domains.
+A Chrome extension that allows users to block websites based on their domains. Built using Manifest V3 and the declarativeNetRequest API for efficient website blocking.
 
 ## Features
 
-- Add domains to block
-- Remove blocked domains
-- Persistent blocking across browser sessions
-- Simple and intuitive interface
+- Block websites by domain name
+
+## Technical Details
+
+The extension uses:
+- Chrome's declarativeNetRequest API for efficient request blocking
+- Chrome Storage API for persisting blocked sites
+- Manifest V3 for modern extension architecture
+- Dynamic rule updates for real-time blocking
 
 ## Installation
 
-1. Download or clone this repository
-2. Open Chrome and go to `chrome://extensions/`
+1. Clone or download this repository
+2. Open Chrome and navigate to `chrome://extensions/`
 3. Enable "Developer mode" in the top right corner
 4. Click "Load unpacked" and select the extension directory
 
@@ -23,16 +28,3 @@ A simple Chrome extension that allows you to block websites based on their domai
 3. Click "Add" to block the domain
 4. To remove a blocked domain, click the "Remove" button next to it
 
-## Notes
-
-- The extension will block all subdomains of the specified domain
-- Changes are saved automatically
-- The extension requires permissions to block websites and store your preferences
-
-## Development
-
-The extension consists of the following files:
-- `manifest.json`: Extension configuration
-- `popup.html`: User interface
-- `popup.js`: Popup functionality
-- `background.js`: Website blocking logic 
