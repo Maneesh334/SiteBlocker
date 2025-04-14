@@ -5,6 +5,7 @@ A Chrome extension that allows users to block websites based on their domains. B
 ## Features
 
 - Block websites by domain name
+- Whitelist mode: Focus mode to block out all distractions/domains apart from the ones on the whitelist.
 
 ## Technical Details
 
@@ -27,4 +28,5 @@ The extension uses:
 2. Enter a domain name (e.g., "example.com") in the input field
 3. Click "Add" to block the domain
 4. To remove a blocked domain, click the "Remove" button next to it
-
+5. Click on whitelist mode to enter whitelist mode.
+6. Add and remove domains as required, similar to the block list.
