@@ -9,36 +9,76 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Function to update blocking rules
 async function updateBlockingRules(blockedSites) {
-  // Remove all existing rules
-  await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: blockedSites.map((_, index) => index + 1)
-  });
-
-  // Add new rules for each blocked site
-  const rules = blockedSites.map((site, index) => ({
-    id: index + 1,
-    priority: 1,
-    action: { type: 'block' },
-    condition: {
-      urlFilter: `*://*.${site}/*`,
-      resourceTypes: ['main_frame', 'sub_frame', 'script', 'xmlhttprequest']
+  try {
+    const baseRuleId = 1000;
+    
+    const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
+    const existingRuleIds = existingRules.map(rule => rule.id);
+    
+    // Remove all existing rules
+    if (existingRuleIds.length > 0) {
+      await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: existingRuleIds
+      });
     }
-  }));
 
-  // Add the new rules
-  await chrome.declarativeNetRequest.updateDynamicRules({
-    addRules: rules
-  });
+    const rules = blockedSites.map((site, index) => {
+      // Normalize the domain
+      const normalizedDomain = site.toLowerCase().replace(/^www\./, '');
+      
+      return [
+        // Rule for exact domain match
+        {
+          id: baseRuleId + (index * 3),
+          priority: 1,
+          action: { type: 'block' },
+          condition: {
+            urlFilter: `*://${normalizedDomain}/*`,
+            resourceTypes: ['main_frame', 'sub_frame', 'script', 'xmlhttprequest']
+          }
+        },
+        // Rule for www subdomain
+        {
+          id: baseRuleId + (index * 3) + 1,
+          priority: 1,
+          action: { type: 'block' },
+          condition: {
+            urlFilter: `*://www.${normalizedDomain}/*`,
+            resourceTypes: ['main_frame', 'sub_frame', 'script', 'xmlhttprequest']
+          }
+        },
+        // Rule for all other subdomains
+        {
+          id: baseRuleId + (index * 3) + 2,
+          priority: 1,
+          action: { type: 'block' },
+          condition: {
+            urlFilter: `*://*.${normalizedDomain}/*`,
+            resourceTypes: ['main_frame', 'sub_frame', 'script', 'xmlhttprequest']
+          }
+        }
+      ];
+    }).flat(); 
+
+
+    if (rules.length > 0) {
+      await chrome.declarativeNetRequest.updateDynamicRules({
+        addRules: rules
+      });
+    }
+  } catch (error) {
+    console.error('Error updating blocking rules:', error);
+  }
 }
 
-// Listen for storage changes to update blocking rules
+
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'sync' && changes.blockedSites) {
     updateBlockingRules(changes.blockedSites.newValue || []);
   }
 });
 
-// Initialize rules with current blocked sites
+
 chrome.storage.sync.get(['blockedSites'], function(result) {
   updateBlockingRules(result.blockedSites || []);
 }); 
