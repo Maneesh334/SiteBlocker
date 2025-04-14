@@ -1,46 +1,74 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const siteInput = document.getElementById('siteInput');
-  const addButton = document.getElementById('addSite');
+  const blockedSiteInput = document.getElementById('blockedSiteInput');
+  const whitelistSiteInput = document.getElementById('whitelistSiteInput');
+  const addBlockedSiteButton = document.getElementById('addBlockedSite');
+  const addWhitelistSiteButton = document.getElementById('addWhitelistSite');
+  const whitelistModeCheckbox = document.getElementById('whitelistMode');
   const blockedSitesList = document.getElementById('blockedSites');
+  const whitelistSitesList = document.getElementById('whitelistSites');
+  const tabButtons = document.querySelectorAll('.tab-button');
+  const tabContents = document.querySelectorAll('.tab-content');
 
-  // Load blocked sites when popup opens
-  loadBlockedSites();
+  // Load initial state
+  loadState();
 
-  addButton.addEventListener('click', function() {
-    const domain = siteInput.value.trim();
+  // Tab switching
+  tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const tab = button.dataset.tab;
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      tabContents.forEach(content => content.classList.remove('active'));
+      button.classList.add('active');
+      document.getElementById(`${tab}Tab`).classList.add('active');
+    });
+  });
+
+  // Whitelist mode toggle
+  whitelistModeCheckbox.addEventListener('change', function() {
+    chrome.storage.sync.set({ whitelistMode: this.checked });
+  });
+
+  // Add blocked site
+  addBlockedSiteButton.addEventListener('click', function() {
+    const domain = blockedSiteInput.value.trim();
     if (domain) {
-      addBlockedSite(domain);
-      siteInput.value = '';
+      addSite(domain, 'blockedSites');
+      blockedSiteInput.value = '';
     }
   });
 
-  function addBlockedSite(domain) {
-    chrome.storage.sync.get(['blockedSites'], function(result) {
-      const blockedSites = result.blockedSites || [];
-      if (!blockedSites.includes(domain)) {
-        blockedSites.push(domain);
-        chrome.storage.sync.set({ blockedSites: blockedSites }, function() {
-          displayBlockedSites(blockedSites);
-        });
+  // Add whitelist site
+  addWhitelistSiteButton.addEventListener('click', function() {
+    const domain = whitelistSiteInput.value.trim();
+    if (domain) {
+      addSite(domain, 'whitelistSites');
+      whitelistSiteInput.value = '';
+    }
+  });
+
+  function addSite(domain, listName) {
+    chrome.storage.sync.get([listName], function(result) {
+      const sites = result[listName] || [];
+      if (!sites.includes(domain)) {
+        sites.push(domain);
+        chrome.storage.sync.set({ [listName]: sites });
       }
     });
   }
 
-  function removeBlockedSite(domain) {
-    chrome.storage.sync.get(['blockedSites'], function(result) {
-      const blockedSites = result.blockedSites || [];
-      const index = blockedSites.indexOf(domain);
+  function removeSite(domain, listName) {
+    chrome.storage.sync.get([listName], function(result) {
+      const sites = result[listName] || [];
+      const index = sites.indexOf(domain);
       if (index > -1) {
-        blockedSites.splice(index, 1);
-        chrome.storage.sync.set({ blockedSites: blockedSites }, function() {
-          displayBlockedSites(blockedSites);
-        });
+        sites.splice(index, 1);
+        chrome.storage.sync.set({ [listName]: sites });
       }
     });
   }
 
-  function displayBlockedSites(sites) {
-    blockedSitesList.innerHTML = '';
+  function displaySites(sites, container, listName) {
+    container.innerHTML = '';
     sites.forEach(function(domain) {
       const siteItem = document.createElement('div');
       siteItem.className = 'site-item';
@@ -52,19 +80,32 @@ document.addEventListener('DOMContentLoaded', function() {
       removeButton.className = 'remove-btn';
       removeButton.textContent = 'Remove';
       removeButton.addEventListener('click', function() {
-        removeBlockedSite(domain);
+        removeSite(domain, listName);
       });
       
       siteItem.appendChild(domainText);
       siteItem.appendChild(removeButton);
-      blockedSitesList.appendChild(siteItem);
+      container.appendChild(siteItem);
     });
   }
 
-  function loadBlockedSites() {
-    chrome.storage.sync.get(['blockedSites'], function(result) {
-      const blockedSites = result.blockedSites || [];
-      displayBlockedSites(blockedSites);
+  function loadState() {
+    chrome.storage.sync.get(['blockedSites', 'whitelistSites', 'whitelistMode'], function(result) {
+      // Set whitelist mode checkbox
+      whitelistModeCheckbox.checked = result.whitelistMode || false;
+      
+      // Display blocked sites
+      displaySites(result.blockedSites || [], blockedSitesList, 'blockedSites');
+      
+      // Display whitelist sites
+      displaySites(result.whitelistSites || [], whitelistSitesList, 'whitelistSites');
     });
   }
+
+  // Listen for storage changes
+  chrome.storage.onChanged.addListener(function(changes, namespace) {
+    if (namespace === 'sync') {
+      loadState();
+    }
+  });
 }); 

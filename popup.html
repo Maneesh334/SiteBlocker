@@ -30,7 +30,29 @@
     button:hover {
       background-color: #45a049;
     }
-    #blockedSites {
+    .remove-btn {
+      background-color: #f44336;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+    .remove-btn:hover {
+      background-color: #d32f2f;
+    }
+    .mode-toggle {
+      margin-bottom: 15px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+    }
+    .mode-toggle label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .mode-toggle input[type="checkbox"] {
+      margin-right: 8px;
+    }
+    .site-list {
       margin-top: 15px;
     }
     .site-item {
@@ -42,23 +64,65 @@
       margin-bottom: 5px;
       border-radius: 4px;
     }
-    .remove-btn {
-      background-color: #f44336;
-      padding: 4px 8px;
-      font-size: 12px;
+    .tab-container {
+      margin-top: 15px;
     }
-    .remove-btn:hover {
-      background-color: #d32f2f;
+    .tab-buttons {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    .tab-button {
+      flex: 1;
+      padding: 8px;
+      background-color: #e0e0e0;
+      border: none;
+      cursor: pointer;
+    }
+    .tab-button.active {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
     }
   </style>
 </head>
 <body>
   <h2>Site Blocker</h2>
-  <div class="input-container">
-    <input type="text" id="siteInput" placeholder="Enter domain (e.g., example.com)">
-    <button id="addSite">Add</button>
+  
+  <div class="mode-toggle">
+    <label>
+      <input type="checkbox" id="whitelistMode">
+      Whitelist Mode (only allow listed sites)
+    </label>
   </div>
-  <div id="blockedSites"></div>
+
+  <div class="tab-container">
+    <div class="tab-buttons">
+      <button class="tab-button active" data-tab="blocked">Blocked Sites</button>
+      <button class="tab-button" data-tab="whitelist">Whitelist Sites</button>
+    </div>
+
+    <div class="tab-content active" id="blockedTab">
+      <div class="input-container">
+        <input type="text" id="blockedSiteInput" placeholder="Enter domain to block">
+        <button id="addBlockedSite">Add</button>
+      </div>
+      <div id="blockedSites" class="site-list"></div>
+    </div>
+
+    <div class="tab-content" id="whitelistTab">
+      <div class="input-container">
+        <input type="text" id="whitelistSiteInput" placeholder="Enter domain to whitelist">
+        <button id="addWhitelistSite">Add</button>
+      </div>
+      <div id="whitelistSites" class="site-list"></div>
+    </div>
+  </div>
+
   <script src="popup.js"></script>
 </body>
 </html> 
